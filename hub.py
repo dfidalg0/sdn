@@ -22,6 +22,10 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet
 from ryu.lib.packet import ether_types
 
+from ryu.controller.controller import Datapath
+from ryu.ofproto.ofproto_v1_3_parser import OFPPacketIn
+from ryu.ofproto import ofproto_v1_3_parser as OFProtoParser
+
 
 class SimpleSwitch13(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -32,9 +36,9 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
-        datapath = ev.msg.datapath
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
+        datapath: Datapath = ev.msg.datapath
+        ofproto: ofproto_v1_3 = datapath.ofproto
+        parser: OFProtoParser = datapath.ofproto_parser
 
         # install table-miss flow entry
         #
@@ -49,8 +53,8 @@ class SimpleSwitch13(app_manager.RyuApp):
         self.add_flow(datapath, 0, match, actions)
 
     def add_flow(self, datapath, priority, match, actions, buffer_id=None):
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
+        ofproto: ofproto_v1_3 = datapath.ofproto
+        parser: OFProtoParser = datapath.ofproto_parser
 
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
                                              actions)]
@@ -70,50 +74,39 @@ class SimpleSwitch13(app_manager.RyuApp):
         if ev.msg.msg_len < ev.msg.total_len:
             self.logger.debug("packet truncated: only %s of %s bytes",
                               ev.msg.msg_len, ev.msg.total_len)
-        msg = ev.msg
-        datapath = msg.datapath
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
+        msg: OFPPacketIn = ev.msg
+        datapath: Datapath = msg.datapath
+
+        ofproto: ofproto_v1_3 = datapath.ofproto
+        parser: OFProtoParser = datapath.ofproto_parser
         in_port = msg.match['in_port']
 
         pkt = packet.Packet(msg.data)
-        eth = pkt.get_protocols(ethernet.ethernet)[0]
+        eth: ethernet.ethernet = pkt.get_protocols(ethernet.ethernet)[0]
 
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
             # ignore lldp packet
             return
-        dst = eth.dst
-        src = eth.src
+
+        dst: str = eth.dst
+        src: str = eth.src
 
         dpid = format(datapath.id, "d").zfill(16)
         self.mac_to_port.setdefault(dpid, {})
 
         self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
 
-        # learn a mac address to avoid FLOOD next time.
-        self.mac_to_port[dpid][src] = in_port
+        # O pacote será sempre distribuído para todas as portas
+        # exceto a porta que o originou
+        out_ports = [port for port in [1, 2, 3] if port != in_port]
 
-        if dst in self.mac_to_port[dpid]:
-            out_port = self.mac_to_port[dpid][dst]
-        else:
-            out_port = ofproto.OFPP_FLOOD
+        actions = [parser.OFPActionOutput(port) for port in out_ports]
 
-        actions = [parser.OFPActionOutput(out_port)]
-
-        # install a flow to avoid packet_in next time
-        if out_port != ofproto.OFPP_FLOOD:
-            match = parser.OFPMatch(in_port=in_port, eth_dst=dst, eth_src=src)
-            # verify if we have a valid buffer_id, if yes avoid to send both
-            # flow_mod & packet_out
-            if msg.buffer_id != ofproto.OFP_NO_BUFFER:
-                self.add_flow(datapath, 1, match, actions, msg.buffer_id)
-                return
-            else:
-                self.add_flow(datapath, 1, match, actions)
         data = None
         if msg.buffer_id == ofproto.OFP_NO_BUFFER:
             data = msg.data
 
         out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
                                   in_port=in_port, actions=actions, data=data)
+
         datapath.send_msg(out)

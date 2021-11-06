@@ -1,0 +1,43 @@
+*** Creating network
+*** Adding controller
+Unable to contact the remote controller at 127.0.0.1:6653
+Unable to contact the remote controller at 127.0.0.1:6633
+Setting remote controller to 127.0.0.1:6653
+*** Adding hosts:
+h1 h2 h3
+*** Adding switches:
+s1
+*** Adding links:
+(h1, s1) (h2, s1) (h3, s1)
+*** Configuring hosts
+h1 h2 h3
+*** Starting controller
+c0
+*** Starting 1 switches
+s1 ...
+*** Starting CLI:
+mininet> mininet>
+mininet> mininet>
+mininet> mininet> tcpdump: listening on h1-eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+mininet>
+mininet> Ping from 10.0.0.1 to 10.0.0.3
+mininet>
+mininet> PING 10.0.0.3 (10.0.0.3) 56(84) bytes of data.
+64 bytes from 10.0.0.3: icmp_seq=1 ttl=64 time=1040 ms
+64 bytes from 10.0.0.3: icmp_seq=2 ttl=64 time=33.3 ms
+64 bytes from 10.0.0.3: icmp_seq=3 ttl=64 time=5.54 ms
+
+--- 10.0.0.3 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2011ms
+rtt min/avg/max/mdev = 5.544/359.514/1039.748/481.130 ms, pipe 2
+mininet>
+mininet> *** Stopping 1 controllers
+c0
+*** Stopping 3 links
+...
+*** Stopping 1 switches
+s1
+*** Stopping 3 hosts
+h1 h2 h3
+*** Done
+completed in 5.910 seconds

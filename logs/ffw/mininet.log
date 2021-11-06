@@ -1,0 +1,71 @@
+*** Creating network
+*** Adding controller
+Connecting to remote controller at 127.0.0.1:6653
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 
+*** Adding links:
+(h1, s1) (h2, s1) (h3, s1) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+c0 
+*** Starting 1 switches
+s1 ...
+*** Starting CLI:
+mininet> mininet> mininet> mininet> 10.0.0.1 to 10.0.0.2
+mininet> PING 10.0.0.2 (10.0.0.2) 56(84) bytes of data.
+tcpdump: listening on h1-eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+
+--- 10.0.0.2 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2014ms
+
+mininet> 10.0.0.2 to 10.0.0.1
+mininet> tcpdump: listening on h2-eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+PING 10.0.0.1 (10.0.0.1) 56(84) bytes of data.
+
+--- 10.0.0.1 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2022ms
+
+mininet> 10.0.0.1 to 10.0.0.3
+mininet> PING 10.0.0.3 (10.0.0.3) 56(84) bytes of data.
+64 bytes from 10.0.0.3: icmp_seq=1 ttl=64 time=30.0 ms
+64 bytes from 10.0.0.3: icmp_seq=2 ttl=64 time=0.134 ms
+64 bytes from 10.0.0.3: icmp_seq=3 ttl=64 time=0.112 ms
+
+--- 10.0.0.3 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2029ms
+rtt min/avg/max/mdev = 0.112/10.077/29.987/14.078 ms
+mininet> 10.0.0.3 to 10.0.0.1
+mininet> tcpdump: listening on h3-eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+PING 10.0.0.1 (10.0.0.1) 56(84) bytes of data.
+64 bytes from 10.0.0.1: icmp_seq=1 ttl=64 time=0.040 ms
+64 bytes from 10.0.0.1: icmp_seq=2 ttl=64 time=0.039 ms
+64 bytes from 10.0.0.1: icmp_seq=3 ttl=64 time=0.061 ms
+
+--- 10.0.0.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2053ms
+rtt min/avg/max/mdev = 0.039/0.046/0.061/0.010 ms
+mininet> 10.0.0.2 to 10.0.0.3
+mininet> PING 10.0.0.3 (10.0.0.3) 56(84) bytes of data.
+
+--- 10.0.0.3 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2057ms
+
+mininet> 10.0.0.3 to 10.0.0.2
+mininet> PING 10.0.0.2 (10.0.0.2) 56(84) bytes of data.
+
+--- 10.0.0.2 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2033ms
+
+mininet> *** Stopping 1 controllers
+c0 
+*** Stopping 3 links
+...
+*** Stopping 1 switches
+s1 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed in 55.064 seconds

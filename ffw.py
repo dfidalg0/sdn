@@ -91,12 +91,6 @@ class SimpleSwitch13(app_manager.RyuApp):
         dst: str = eth.dst
         src: str = eth.src
 
-        is_icmp = bool(pkt.get_protocols(icmp.icmp))
-        is_to_h2 = dst.endswith(':02')
-
-        if is_icmp and is_to_h2:
-            return
-
         dpid = format(datapath.id, "d").zfill(16)
         self.mac_to_port.setdefault(dpid, {})
 
@@ -107,13 +101,22 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         if dst in self.mac_to_port[dpid]:
             out_port = self.mac_to_port[dpid][dst]
+
+            is_icmp = bool(pkt.get_protocols(icmp.icmp))
+
+            if is_icmp and out_port == 2:
+                self.logger.info('Filtered ICMP to h2')
+                return
         else:
             out_port = ofproto.OFPP_FLOOD
 
         actions = [parser.OFPActionOutput(out_port)]
 
         # install a flow to avoid packet_in next time
-        if out_port != ofproto.OFPP_FLOOD:
+        # Colocamos o 2 na lista de exceções, pois queremos que requisições
+        # para a porta 2 sempre disparem o evento packet_in, de forma que podemos
+        # filtrá-las
+        if out_port not in [ofproto.OFPP_FLOOD, 2]:
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst, eth_src=src)
             # verify if we have a valid buffer_id, if yes avoid to send both
             # flow_mod & packet_out
